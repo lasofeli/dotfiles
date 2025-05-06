@@ -8,86 +8,56 @@
     [ (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+  boot.initrd.systemd.enable = true;
   boot.initrd.availableKernelModules = [ "xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
       fsType = "btrfs";
       options = [ "subvol=@root" "ssd" "compress-force=zstd:1" "noatime" ];
     };
 
-  boot.initrd.postResumeCommands = lib.mkAfter ''
-    mkdir /btrfs_tmp
-    mount /dev/mapper/cryptroot /btrfs_tmp
-    if [[ -e /btrfs_tmp/@root ]]; then
-        mkdir -p /btrfs_tmp/@old_roots
-        timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/@root)" "+%Y-%m-%-d_%H:%M:%S")
-        mv /btrfs_tmp/@root "/btrfs_tmp/@old_roots/$timestamp"
-    fi
-
-    delete_subvolume_recursively() {
-        IFS=$'\n'
-        for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-            delete_subvolume_recursively "/btrfs_tmp/$i"
-        done
-        btrfs subvolume delete "$1"
-    }
-
-    for i in $(find /btrfs_tmp/@old_roots/ -maxdepth 1 -mtime +30); do
-        delete_subvolume_recursively "$i"
-    done
-
-    btrfs subvolume create /btrfs_tmp/@root
-    umount /btrfs_tmp
-  '';
-
-  boot.initrd.luks.devices."cryptroot".device = "/dev/disk/by-uuid/de220793-9851-446b-9e1f-c30967aeef03";
-
-  fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
-      fsType = "btrfs";
-      options = [ "subvol=@home" "ssd" "compress-force=zstd:1" "noatime" ];
-    };
-
-  fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
-      fsType = "btrfs";
-      options = [ "subvol=@nix" "ssd" "compress-force=zstd:1" "noatime" ];
-    };
-
-  fileSystems."/persist" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
-      fsType = "btrfs";
-      options = [ "subvol=@persist" "ssd" "compress-force=zstd:1" "noatime" ];
-      neededForBoot = true;
-    };
-
-  fileSystems."/var/log" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
-      fsType = "btrfs";
-      options = [ "subvol=@var_log" "ssd" "compress-force=zstd:1" "noatime" ];
-      neededForBoot = true;
-    };
+  boot.initrd.luks.devices."cryptroot".device = "/dev/disk/by-uuid/f1c791fb-2e5d-410c-962b-fe4654f7ec78";
 
   fileSystems."/var/lib/machines" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
       fsType = "btrfs";
       options = [ "subvol=@var_lib_machines" "ssd" "compress-force=zstd:1" "noatime" ];
     };
 
   fileSystems."/var/lib/portables" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
       fsType = "btrfs";
       options = [ "subvol=@var_lib_portables" "ssd" "compress-force=zstd:1" "noatime" ];
     };
 
+  fileSystems."/var/log" =
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
+      fsType = "btrfs";
+      options = [ "subvol=@var_log" "ssd" "compress-force=zstd:1" "noatime" ];
+      neededForBoot = true;
+    };
+
   fileSystems."/.swap" =
-    { device = "/dev/disk/by-uuid/e22b3cb8-b0fc-46dc-946f-a078ed8e9cb1";
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
       fsType = "btrfs";
       options = [ "subvol=@swap" ];
+    };
+
+  fileSystems."/nix" =
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
+      fsType = "btrfs";
+      options = [ "subvol=@nix" "ssd" "compress-force=zstd:1" "noatime" ];
+    };
+
+  fileSystems."/persist" =
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
+      fsType = "btrfs";
+      options = [ "subvol=@persist" "ssd" "compress-force=zstd:1" "noatime" ];
+      neededForBoot = true;
     };
 
   fileSystems."/boot" =
@@ -96,7 +66,16 @@
       options = [ "fmask=0022" "dmask=0022" ];
     };
 
-  swapDevices = [ ];
+  fileSystems."/home" =
+    { device = "/dev/disk/by-uuid/a7b63feb-1869-4982-abea-474db999ff46";
+      fsType = "btrfs";
+      options = [ "subvol=@home" "ssd" "compress-force=zstd:1" "noatime" ];
+    };
+
+  swapDevices = [{
+	device = "/.swap/swapfile";
+	size = 24 * 1024;
+  }];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's

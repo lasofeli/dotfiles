@@ -31,7 +31,7 @@
       { file = "/var/keys/secret_file"; parentDirectory = { mode = "u=rwx,g=,o="; }; }
     ];
     # Not necessary for now because /home is on a different subvolume
-    /*
+    /*    
     users.alice = {
       directories = [
         "Downloads"
@@ -53,10 +53,33 @@
     */
   };
 
+  # Battery conservation service
+  systemd.services.battery-conservation-mode = {
+	enable = true;
+	description = "to cap charging at 80%";
+	wantedBy = ["multi-user.target"];
+	unitConfig = {
+		Type = "oneshot";
+	};
+	serviceConfig = {
+		ExecStart = "/bin/sh -c 'echo 1 > /sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode'";
+		ExecStop = "/bin/sh -c 'echo 0 > /sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode'";
+		RemainAfterExit = true;
+	};
+	
+  };
+
+  # Mullvad
+  # At some point, might move to using GNOME/Linux's built-in VPN functionality
+  # but right now, I just need it to work
+  services.mullvad-vpn.enable = true;
+
+  virtualisation.podman.enable = true;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  zramSwap.enable = true;
 
   networking.hostName = "DESKTOP-4HD0R4"; # Define your hostname.
   # Pick only one of the below networking options.
@@ -79,11 +102,11 @@
   # };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = false;
+  services.xserver.enable = true;
 
   # Enable the GNOME Desktop Environment.
 
-  services.displayManager.defaultSession = "niri";
+#  services.displayManager.defaultSession = "niri";
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   
@@ -136,6 +159,8 @@
     mako
     font-awesome
     brightnessctl
+    mullvad-vpn
+    toolbox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
