@@ -15,7 +15,7 @@
   programs.niri.enable = true;
 
   # Impermanence shenanigans
-  environment.persistence."/persist" = {
+  environment.persistence."/.persist" = {
     enable = true;  # NB: Defaults to true, not needed
     hideMounts = true;
     directories = [
@@ -30,27 +30,8 @@
       "/etc/machine-id"
       { file = "/var/keys/secret_file"; parentDirectory = { mode = "u=rwx,g=,o="; }; }
     ];
-    # Not necessary for now because /home is on a different subvolume
-    /*    
-    users.alice = {
-      directories = [
-        "Downloads"
-        "Music"
-        "Pictures"
-        "Documents"
-        "Videos"
-        "VirtualBox VMs"
-        { directory = ".gnupg"; mode = "0700"; }
-        { directory = ".ssh"; mode = "0700"; }
-        { directory = ".nixops"; mode = "0700"; }
-        { directory = ".local/share/keyrings"; mode = "0700"; }
-        ".local/share/direnv"
-      ];
-      files = [
-        ".screenrc"
-      ];
-    };
-    */
+    # We don't need a specific home part because we already place
+    # home on a different subvolume.
   };
 
   # Battery conservation service
@@ -130,8 +111,17 @@
   # services.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.alice = {
-    description = "Alice";
+  users.users.artemis = {
+    description = "Artemis";
+    hashedPassword = "$y$j9T$Td56vFwgXD9D64Sys7dbV0$0fy4UOIkzvFpNvIyVn.MB9eEB1rwedhwDiAWMXW5WN7";
+    isNormalUser = true;
+    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    packages = with pkgs; [
+      tree
+    ];
+  };
+  users.users.work = {
+    description = "Work";
     hashedPassword = "$y$j9T$Td56vFwgXD9D64Sys7dbV0$0fy4UOIkzvFpNvIyVn.MB9eEB1rwedhwDiAWMXW5WN7";
     isNormalUser = true;
     extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
@@ -160,7 +150,7 @@
     font-awesome
     brightnessctl
     mullvad-vpn
-    toolbox
+    distrobox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
